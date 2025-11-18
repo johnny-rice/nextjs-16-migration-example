@@ -36,6 +36,14 @@ This project includes examples of features that need to be migrated:
 ## Project Structure
 
 ```
+├── __tests__/              # Test suite
+│   ├── lib/
+│   │   └── products.test.ts
+│   ├── app/
+│   │   ├── page.test.tsx
+│   │   └── products/[id]/page.test.tsx
+│   ├── middleware.test.ts
+│   └── migration-compatibility.test.ts
 ├── app/
 │   ├── layout.tsx          # Root layout
 │   ├── page.tsx            # Home page with product listing
@@ -45,9 +53,11 @@ This project includes examples of features that need to be migrated:
 │   └── globals.css         # Global styles
 ├── lib/
 │   └── products.ts         # Mock product data and API functions
-├── middleware.ts           # ⚠️ To be renamed to proxy.ts in Next.js 16
+├── middleware.ts           # NOTE: To be renamed to proxy.ts in Next.js 16
 ├── next.config.ts          # Next.js configuration
 ├── package.json            # Dependencies (Next.js 15)
+├── vitest.config.ts        # Vitest configuration
+├── vitest.setup.ts         # Test setup file
 └── tsconfig.json           # TypeScript configuration
 ```
 
@@ -55,15 +65,109 @@ This project includes examples of features that need to be migrated:
 
 1. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 2. Run the development server:
 ```bash
-npm run dev
+pnpm dev
 ```
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Testing
+
+This project includes a comprehensive test suite using [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/react). The tests are designed to work on both Next.js 15 (main branch) and Next.js 16 (migration branch), ensuring migration compatibility.
+
+### Running Tests
+
+```bash
+# Run all tests once
+pnpm test
+
+# Run tests in watch mode (for development)
+pnpm test:watch
+
+# Run tests with coverage report
+pnpm test:coverage
+```
+
+### Test Coverage
+
+The test suite includes **37 tests** across **5 test files**, covering:
+
+#### 1. Product Data Functions (`__tests__/lib/products.test.ts`)
+- `getProducts()` - Returns all products with correct structure
+- `getProduct()` - Handles valid/invalid IDs correctly
+- Data integrity - Unique IDs, positive prices, non-empty fields
+- Consistent results across multiple calls
+
+#### 2. Middleware/Proxy (`__tests__/middleware.test.ts`)
+- Middleware function export (Next.js 15)
+- Header setting (`x-middleware-version`)
+- API route detection (`x-api-route` header)
+- Path-based request handling
+- Compatible with proxy.ts (Next.js 16)
+
+#### 3. Home Page (`__tests__/app/page.test.tsx`)
+- Page title and heading rendering
+- Product listing display
+- Product links and navigation
+- Footer with timestamp
+- Async component behavior (Next.js 15/16 compatible)
+
+#### 4. Product Detail Page (`__tests__/app/products/[id]/page.test.tsx`)
+- Product detail rendering
+- Async params handling (Next.js 16 requirement)
+- Search params support
+- `notFound()` behavior for invalid products
+- Back navigation link
+
+#### 5. Migration Compatibility (`__tests__/migration-compatibility.test.ts`)
+- Async params pattern validation (Next.js 16 requirement)
+- Data fetching consistency
+- Component rendering compatibility
+- Caching behavior validation
+
+### Test Structure
+
+```
+__tests__/
+├── lib/
+│   └── products.test.ts              # Product data function tests
+├── middleware.test.ts                 # Middleware/proxy tests
+├── app/
+│   ├── page.test.tsx                 # Home page component tests
+│   └── products/
+│       └── [id]/
+│           └── page.test.tsx         # Product detail page tests
+└── migration-compatibility.test.ts    # Migration compatibility tests
+```
+
+### Why These Tests Matter
+
+These tests ensure that:
+- **Functionality is preserved** during migration from Next.js 15 to 16
+- **Breaking changes are caught early** (async params, middleware → proxy)
+- **Data integrity is maintained** across both versions
+- **Components render correctly** with Next.js 16 patterns
+- **Migration compatibility** is validated before and after migration
+
+### Running Tests Before Migration
+
+Before migrating to Next.js 16, ensure all tests pass:
+
+```bash
+pnpm test
+```
+
+After migration, run the same tests to verify everything still works:
+
+```bash
+pnpm test
+```
+
+All tests should pass on both branches, confirming a successful migration.
 
 ## Migration Checklist
 
