@@ -688,3 +688,9 @@ To test the error boundary, you can:
 - [Next.js Metadata API](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)
 - [Next.js Error Handling](https://nextjs.org/docs/app/api-reference/file-conventions/error)
 
+## Credits
+
+Created by [@johnny-rice](https://github.com/johnny-rice)
+
+This project demonstrates Next.js 15 to 16 migration patterns based on Vercel's migration webinar.
+
