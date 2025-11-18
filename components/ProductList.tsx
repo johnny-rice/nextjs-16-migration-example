@@ -1,8 +1,10 @@
+"use cache"
+
 import Link from 'next/link'
 import { getCachedProducts, type Product } from '@/lib/products'
 
 // Next.js 16: Using cache components for static rendering
-// The cache directive ensures this component can be statically rendered
+// The explicit "use cache" directive ensures this component can be statically rendered
 
 export async function ProductList() {
   const products = await getCachedProducts()
