@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
-import { getCachedProducts, type Product } from '@/lib/products'
+import type { Metadata } from 'next'
+import { getCachedProducts, getCachedProduct, type Product } from '@/lib/products'
 import { ProductDetail } from '@/components/ProductDetail'
 
 // Next.js 16: params MUST be async and require await
@@ -16,6 +17,37 @@ export async function generateStaticParams() {
   return products.map((product: Product) => ({
     id: product.id.toString(),
   }))
+}
+
+// Next.js 16: Dynamic metadata generation with async data
+// This demonstrates enhanced SEO features with cache components
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+  const product = await getCachedProduct(id)
+  
+  if (!product) {
+    return {
+      title: 'Product Not Found',
+      description: 'The requested product could not be found.',
+    }
+  }
+  
+  return {
+    title: `${product.name} - E-Commerce Store`,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      type: 'website',
+      // In a real app, you would have product images
+      // images: [`/products/${id}/image.jpg`],
+    },
+    twitter: {
+      card: 'summary',
+      title: product.name,
+      description: product.description,
+    },
+  }
 }
 
 // Next.js 16: Page component is no longer async - delegates to child components

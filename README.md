@@ -1,4 +1,4 @@
-# Next.js 15 → 16 Migration Example
+# Next.js 15 to 16 Migration Example
 
 This project demonstrates a Next.js 15 application and its migration to Next.js 16, based on Vercel's migration webinar.
 
@@ -69,17 +69,25 @@ This repository contains two branches demonstrating the before and after states 
 ├── app/
 │   ├── layout.tsx          # Root layout
 │   ├── page.tsx            # Home page using cache components with Suspense
+│   ├── actions.ts          # Server Actions for cache revalidation
+│   ├── api/
+│   │   └── revalidate/
+│   │       └── route.ts    # API route for cache tag revalidation
 │   ├── products/
 │   │   └── [id]/
-│   │       └── page.tsx    # Product detail page (params properly awaited)
+│   │       ├── page.tsx    # Product detail page with generateMetadata
+│   │       └── error.tsx   # Enhanced error boundary with recovery
 │   └── globals.css         # Global styles
-├── components/             # New: Cache component examples
-│   ├── ProductList.tsx    # Cached product list component (static)
-│   └── Footer.tsx         # Dynamic footer component
+├── components/             # Cache component examples
+│   ├── ProductList.tsx    # Cached product list component (static, "use cache")
+│   ├── ProductDetail.tsx  # Cached product detail component
+│   ├── ProductStats.tsx   # Advanced cache pattern - multiple boundaries
+│   ├── Footer.tsx         # Dynamic footer component
+│   └── RefreshButton.tsx  # Client component using Server Actions
 ├── lib/
-│   └── products.ts         # Updated with cache() function exports
+│   └── products.ts         # Cache tags with unstable_cache and ISR
 ├── proxy.ts                # Migrated from middleware.ts
-├── next.config.ts          # Cache components enabled
+├── next.config.ts          # Cache components & React Compiler enabled
 ├── package.json            # Next.js 16 dependencies
 └── tsconfig.json           # TypeScript configuration
 ```
@@ -87,6 +95,10 @@ This repository contains two branches demonstrating the before and after states 
 **Key Features:**
 - Uses `proxy.ts` with `proxy` constant export
 - Cache components enabled in `next.config.ts`
+- **React Compiler enabled** - automatic memoization without manual code
+- **Cache tags with ISR** - tag-based cache invalidation with `unstable_cache`
+- **Explicit "use cache" directive** - visible caching behavior in components
+- **Server Actions for cache revalidation** - UI-triggered cache invalidation
 - Suspense boundaries with cache components
 - Granular static/dynamic rendering control
 - All async params properly awaited
@@ -96,9 +108,15 @@ This repository contains two branches demonstrating the before and after states 
 - Updated Next.js to v16.0.0
 - Renamed `middleware.ts` to `proxy.ts` and updated exports
 - Enabled cache components in `next.config.ts`
+- **Enabled React Compiler** - automatic component optimization
+- **Implemented cache tags** - using `unstable_cache` with ISR revalidation
+- **Added "use cache" directive** - explicit caching in components
+- **Created cache revalidation API** - `/api/revalidate` route with `revalidateTag`
+- **Added Server Actions** - `app/actions.ts` for cache invalidation
+- **Created RefreshButton component** - demonstrates Server Actions in UI
 - Refactored pages to use cache components with Suspense boundaries
 - Created `ProductList` and `Footer` components demonstrating cache components
-- Updated `lib/products.ts` with cached function exports
+- Updated `lib/products.ts` with cached function exports using cache tags
 - Updated TypeScript to 5.1+
 - All async params properly awaited
 
@@ -212,7 +230,7 @@ __tests__/
 
 These tests ensure that:
 - **Functionality is preserved** during migration from Next.js 15 to 16
-- **Breaking changes are caught early** (async params, middleware → proxy)
+- **Breaking changes are caught early** (async params, middleware to proxy)
 - **Data integrity is maintained** across both versions
 - **Components render correctly** with Next.js 16 patterns
 - **Migration compatibility** is validated before and after migration
@@ -235,7 +253,7 @@ All tests should pass on both branches, confirming a successful migration.
 
 ## Key Migration Changes
 
-### 1. Middleware → Proxy
+### 1. Middleware to Proxy
 
 **`main` branch (Next.js 15):**
 ```typescript
@@ -258,8 +276,8 @@ export const proxy = async (request: NextRequest) => {
 ```
 
 **Changes:**
-- File renamed: `middleware.ts` → `proxy.ts`
-- Export changed: `function middleware()` → `const proxy = async ()`
+- File renamed: `middleware.ts` to `proxy.ts`
+- Export changed: `function middleware()` to `const proxy = async ()`
 - Function is now async by default
 
 ### 2. Async Params
@@ -398,8 +416,275 @@ export const getCachedProducts = cache(getProducts)  // Cached version
 - Better performance through granular caching control
 - Improved developer experience with clearer separation of concerns
 
+### 4. React Compiler
+
+**`nextjs-16-migration` branch (Next.js 16):**
+```typescript
+// next.config.ts
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  reactCompiler: true, // Automatic memoization
+}
+```
+
+**What it does:**
+- Automatically memoizes components to reduce unnecessary re-renders
+- No manual `useMemo` or `useCallback` needed
+- Stable in Next.js 16, works transparently
+- Requires `babel-plugin-react-compiler` package (installed)
+
+**Benefits:**
+- Improved performance without code changes
+- Reduced cognitive load - no need to manually optimize
+- Better default performance out of the box
+
+### 5. Cache Tags & ISR Integration
+
+**`nextjs-16-migration` branch (Next.js 16):**
+```typescript
+// lib/products.ts
+import { unstable_cache } from 'next/cache'
+
+export const getCachedProducts = unstable_cache(
+  async () => _getProducts(),
+  ['products-list'],
+  {
+    tags: ['products-list'],
+    revalidate: 3600, // 1 hour ISR
+  }
+)
+
+// app/api/revalidate/route.ts
+import { revalidateTag } from 'next/cache'
+
+export async function POST(request: NextRequest) {
+  const tag = request.nextUrl.searchParams.get('tag')
+  revalidateTag(tag)
+  return Response.json({ revalidated: true, tag })
+}
+```
+
+**What it does:**
+- Tag-based cache invalidation with `revalidateTag()`
+- Integration with Incremental Static Regeneration (ISR)
+- Precise control over which cached data to invalidate
+
+**Benefits:**
+- Update specific data without redeploying
+- Webhook-friendly cache invalidation
+- Better cache management for dynamic content
+
+### 6. Server Actions for Cache Revalidation
+
+**`nextjs-16-migration` branch (Next.js 16):**
+```typescript
+// app/actions.ts
+'use server'
+
+import { revalidateTag } from 'next/cache'
+
+export async function revalidateProducts() {
+  revalidateTag('products-list')
+  return { success: true, timestamp: new Date().toISOString() }
+}
+
+// components/RefreshButton.tsx
+'use client'
+
+import { revalidateProducts } from '@/app/actions'
+
+export function RefreshButton() {
+  return (
+    <form action={revalidateProducts}>
+      <button type="submit">Refresh Products Cache</button>
+    </form>
+  )
+}
+```
+
+**What it does:**
+- Server Actions can trigger cache revalidation
+- Direct integration with UI components
+- Type-safe server-side operations
+
+**Benefits:**
+- User-triggered cache updates
+- Admin interfaces for cache management
+- Real-world pattern for content management
+
+### 7. Explicit "use cache" Directive
+
+**`nextjs-16-migration` branch (Next.js 16):**
+```typescript
+// components/ProductList.tsx
+"use cache"
+
+export async function ProductList() {
+  const products = await getCachedProducts()
+  // Component logic
+}
+```
+
+**What it does:**
+- Makes caching behavior explicit in code
+- Clear indication of static rendering intent
+- Works alongside cache components
+
+**Benefits:**
+- Better code readability
+- Explicit caching control
+- Easier to understand component behavior
+
+### 8. Dynamic Metadata API
+
+**`nextjs-16-migration` branch (Next.js 16):**
+```typescript
+// app/products/[id]/page.tsx
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+  const product = await getCachedProduct(id)
+  
+  return {
+    title: `${product.name} - E-Commerce Store`,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title: product.name,
+      description: product.description,
+    },
+  }
+}
+```
+
+**What it does:**
+- Dynamic metadata generation with async data
+- Enhanced SEO features per product page
+- Social media optimization (OpenGraph, Twitter Cards)
+
+**Benefits:**
+- Better search engine optimization
+- Improved social sharing previews
+- Per-page metadata customization
+
+### 9. Advanced Cache Component Patterns
+
+**`nextjs-16-migration` branch (Next.js 16):**
+```typescript
+// components/ProductStats.tsx
+"use cache"
+
+export async function ProductStats() {
+  const products = await getCachedProducts()
+  // Calculate statistics from cached data
+  // ...
+}
+
+// app/page.tsx - Multiple cache boundaries
+<Suspense fallback={<div>Loading products...</div>}>
+  <ProductList />
+</Suspense>
+<Suspense fallback={<div>Loading statistics...</div>}>
+  <ProductStats />
+</Suspense>
+```
+
+**What it does:**
+- Multiple cache boundaries on the same page
+- Independent Suspense boundaries
+- Shared cached data source (both use `getCachedProducts`)
+
+**Benefits:**
+- Demonstrates complex cache component usage
+- Shows how multiple components can share cached data
+- Independent loading states per cache boundary
+
+### 10. Enhanced Error Handling
+
+**`nextjs-16-migration` branch (Next.js 16):**
+```typescript
+// app/products/[id]/error.tsx
+'use client'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <p>{error.message}</p>
+      {error.digest && <p>Error ID: {error.digest}</p>}
+      <button onClick={reset}>Try again</button>
+      <Link href="/">Back to Products</Link>
+    </div>
+  )
+}
+```
+
+**What it does:**
+- Enhanced error boundaries with recovery patterns
+- Error logging and reporting
+- User-friendly error messages with recovery options
+
+**Benefits:**
+- Better user experience when errors occur
+- Error recovery without full page reload
+- Error tracking with digest IDs
+
+## New Features Summary
+
+This branch now demonstrates:
+
+1. **Cache Components** - Simultaneous static/dynamic rendering
+2. **React Compiler** - Automatic component optimization
+3. **Cache Tags** - Tag-based cache invalidation with ISR
+4. **Server Actions** - UI-triggered cache revalidation
+5. **"use cache" Directive** - Explicit caching control
+6. **Proxy Migration** - Middleware to proxy.ts
+7. **Async Params** - Required await for params
+8. **Dynamic Metadata** - SEO-optimized per-page metadata
+9. **Advanced Cache Patterns** - Multiple cache boundaries
+10. **Error Handling** - Enhanced error boundaries with recovery
+
+## Testing Cache Revalidation
+
+You can test the cache revalidation features:
+
+**Via API Route:**
+```bash
+# Revalidate products list
+curl -X POST http://localhost:3000/api/revalidate?tag=products-list
+
+# Revalidate specific product
+curl -X POST http://localhost:3000/api/revalidate?tag=product-1
+```
+
+**Via UI:**
+- Click the "Refresh Products Cache" button on the home page
+- This uses Server Actions to trigger cache revalidation
+
+## Testing Error Handling
+
+To test the error boundary, you can:
+
+1. Navigate to a non-existent product: `/products/999`
+2. The error boundary will catch the error and display a recovery UI
+3. Use the "Try again" button to retry or "Back to Products" to navigate away
+
 ## Resources
 
 - [Next.js 16 Release Notes](https://nextjs.org/blog/next-16)
 - Migration webinar notes in `plan.md`
+- [Next.js Cache Tags Documentation](https://nextjs.org/docs/app/api-reference/functions/revalidateTag)
+- [React Compiler Documentation](https://react.dev/learn/react-compiler)
+- [Next.js Metadata API](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)
+- [Next.js Error Handling](https://nextjs.org/docs/app/api-reference/file-conventions/error)
 
