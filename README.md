@@ -229,3 +229,9 @@ Cache components allow for simultaneous static and dynamic rendering. See the Ne
 - [Next.js 16 Release Notes](https://nextjs.org/blog/next-16)
 - Migration webinar notes in `plan.md`
 
+## Credits
+
+Created by [@johnny-rice](https://github.com/johnny-rice)
+
+This project demonstrates Next.js 15 to 16 migration patterns based on Vercel's migration webinar.
+
