@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// This middleware.ts will need to be renamed to proxy.ts in Next.js 16
-// and export a 'proxy' value instead of 'middleware'
-export function middleware(request: NextRequest) {
+// Next.js 16: middleware.ts renamed to proxy.ts
+// Export a 'proxy' value instead of 'middleware' function
+export const proxy = async (request: NextRequest) => {
   // Example: Add a custom header
   const response = NextResponse.next()
-  response.headers.set('x-middleware-version', '15')
+  response.headers.set('x-proxy-version', '16')
   
   // Example: Simple path-based logic
   if (request.nextUrl.pathname.startsWith('/api')) {
