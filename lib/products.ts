@@ -1,5 +1,11 @@
 // Mock product data and API functions
-// In Next.js 16, these can be optimized with cache components
+// Next.js 16: Using cache components for optimized rendering
+
+import * as React from 'react'
+
+// cache is available in React 19+ and Next.js 16
+// For test compatibility, provide a fallback
+const cacheFn = (React as any).cache || ((fn: any) => fn)
 
 export interface Product {
   id: number
@@ -52,8 +58,8 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-// In Next.js 15, this uses default caching behavior
-// In Next.js 16, we can use cache components for more granular control
+// Next.js 16: Using cache() for request-level memoization
+// This works with cache components to enable static rendering
 export async function getProducts(): Promise<Product[]> {
   // Simulate network delay
   await delay(100)
@@ -66,4 +72,8 @@ export async function getProduct(id: string): Promise<Product | null> {
   const product = products.find((p) => p.id === parseInt(id))
   return product || null
 }
+
+// Cached versions for use with cache components
+export const getCachedProducts = cacheFn(getProducts)
+export const getCachedProduct = cacheFn(getProduct)
 
