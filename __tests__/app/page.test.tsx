@@ -106,4 +106,3 @@ describe('Home Page (Next.js 16 with Cache Components)', () => {
     expect(result.type).toBeDefined() // React element
   })
 })
-
