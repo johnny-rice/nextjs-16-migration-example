@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { middleware } from '@/middleware'
+import { proxy } from '@/proxy'
 
 // Test middleware/proxy functionality
 // This test works for both Next.js 15 (middleware.ts) and Next.js 16 (proxy.ts)
 // On the main branch, we test middleware.ts
-// On the migration branch, proxy.ts will be tested
+// On the migration branch, we test proxy.ts (Next.js 16)
 describe('Middleware (Next.js 15) / Proxy (Next.js 16)', () => {
-  // Use middleware from main branch (Next.js 15)
-  // On migration branch, this test will need to be updated or proxy.ts will be imported
-  const middlewareOrProxy = middleware
+  // On migration branch, use proxy (Next.js 16)
+  const middlewareOrProxy = proxy
 
   it('should export middleware or proxy function', () => {
     expect(middlewareOrProxy).not.toBeNull()

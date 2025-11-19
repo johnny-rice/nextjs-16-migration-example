@@ -11,15 +11,15 @@ describe('Migration Compatibility Tests', () => {
   describe('Async Params Compatibility', () => {
     it('should handle Promise-based params (Next.js 16 requirement)', async () => {
       // Simulate Next.js 16 params structure
+      // Note: searchParams removed from product detail page to allow static generation
+      // with cache components. In Next.js 16, searchParams makes pages dynamic which
+      // conflicts with generateStaticParams when cache components are enabled.
       const params = Promise.resolve({ id: '1' })
-      const searchParams = Promise.resolve({})
       
-      // Both should be awaitable
+      // Params MUST be awaited in Next.js 16
       const resolvedParams = await params
-      const resolvedSearchParams = await searchParams
       
       expect(resolvedParams.id).toBe('1')
-      expect(resolvedSearchParams).toEqual({})
     })
 
     it('should work with async/await pattern', async () => {
@@ -29,6 +29,19 @@ describe('Migration Compatibility Tests', () => {
       const product = await getProduct(id)
       expect(product).not.toBeNull()
       expect(product?.id).toBe(2)
+    })
+
+    it('should handle searchParams as optional (removed for cache components)', async () => {
+      // Note: searchParams was removed from product detail page implementation
+      // to allow static generation with cache components in Next.js 16
+      // This test documents that searchParams can still be used in other contexts
+      // but was removed from this specific page for compatibility with cache components
+      const searchParams = Promise.resolve({ review: 'great' })
+      const resolvedSearchParams = await searchParams
+      
+      expect(resolvedSearchParams).toEqual({ review: 'great' })
+      // This demonstrates searchParams still works, but was removed from
+      // the product detail page to enable static generation
     })
   })
 
@@ -94,4 +107,3 @@ describe('Migration Compatibility Tests', () => {
     })
   })
 })
-
