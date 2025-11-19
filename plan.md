@@ -2,7 +2,7 @@
 
 ## Summary
 
-Dan Lawhorn and Miguel Caballero from Vercel discussed Next.js 16's new features and migration strategies. Key points included:
+[Dan Laugharn](https://www.laugharn.dev/) ([GitHub](https://github.com/laugharn)) and [Miguel Caballero](https://miguel.cab/) ([GitHub](https://github.com/mcabs3)) from Vercel discussed Next.js 16's new features and migration strategies. Key points included:
 
 - **Next.js Dev Tools (MCP)** for AI-assisted development
 - **React Compiler Support** for optimized component rendering
@@ -24,7 +24,7 @@ The main focus was on **cache components**, which allow for simultaneous static 
 
 The webinar kicked off with participants joining from various time zones and locations, including Austin, Texas, Chicago suburbs, and Canada. There was a quick poll about current Next.js versions in use, which showed a wide range from Next.js 12 all the way up to 16.
 
-Dan Lawhorn and Miguel Caballero introduced themselves as part of the field engineering team at Vercel, and they were clearly excited about Next.js 16 migrations. The agenda covered new features, breaking changes, a brief history of rendering strategies, a current e-commerce example, and a deep dive into the cache components feature.
+[Dan Laugharn](https://www.laugharn.dev/) ([GitHub](https://github.com/laugharn)) and [Miguel Caballero](https://miguel.cab/) ([GitHub](https://github.com/mcabs3)) introduced themselves as part of the field engineering team at Vercel, and they were clearly excited about Next.js 16 migrations. The agenda covered new features, breaking changes, a brief history of rendering strategies, a current e-commerce example, and a deep dive into the cache components feature.
 
 ### Overview of Next.js 16 Features
 
