@@ -694,3 +694,10 @@ Created by [@johnny-rice](https://github.com/johnny-rice)
 
 This project demonstrates Next.js 15 to 16 migration patterns based on Vercel's migration webinar.
 
+### Webinar Presenters
+
+This recap is based on the detailed webinar provided by:
+
+- [Dan Laugharn](https://www.laugharn.dev/) ([GitHub](https://github.com/laugharn)) - Senior Sales Engineer at Vercel
+- [Miguel Caballero](https://miguel.cab/) ([GitHub](https://github.com/mcabs3)) - Engineer at Vercel
+
