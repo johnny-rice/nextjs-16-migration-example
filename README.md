@@ -654,6 +654,63 @@ This branch now demonstrates:
 9. **Advanced Cache Patterns** - Multiple cache boundaries
 10. **Error Handling** - Enhanced error boundaries with recovery
 
+## Cache Components in Highly Dynamic Apps (Q&A Highlights)
+
+Based on the webinar Q&A session, this migration demonstrates the key patterns for using cache components in highly dynamic applications:
+
+### ✅ **Using Cache Components in Highly Dynamic Apps**
+
+The migration shows how to handle both static and dynamic content on the same page:
+- **Static content**: `ProductList` component uses `"use cache"` directive and is cached with ISR
+- **Dynamic content**: `Footer` component uses `headers()` to mark it as dynamic, rendering fresh timestamps
+- **Mixed rendering**: Both coexist on the same page (`app/page.tsx`), demonstrating simultaneous static and dynamic rendering
+
+### ✅ **Role of Suspense Boundaries**
+
+Multiple Suspense boundaries provide granular control:
+- **Independent boundaries**: `ProductList`, `ProductStats`, and `Footer` each have their own Suspense boundary
+- **Shared cached data**: `ProductList` and `ProductStats` both use `getCachedProducts()`, demonstrating how multiple components can share cached data
+- **Independent loading states**: Each boundary has its own fallback UI, allowing for progressive rendering
+
+### ✅ **Granular Control Over Caching**
+
+Precise cache invalidation with cache tags:
+- **Cache tags**: `'products-list'` and `'product-{id}'` tags allow targeted invalidation
+- **ISR integration**: `revalidate: 3600` provides time-based revalidation
+- **Tag-based revalidation**: Server Actions and API routes can invalidate specific tags without affecting others
+- **Multiple cache boundaries**: Different components can have different caching strategies on the same page
+
+### ✅ **Handling Dynamic Data Efficiently**
+
+The migration demonstrates efficient dynamic data management:
+- **Request-level memoization**: `cache()` from React ensures data is fetched once per request
+- **Cache tags with ISR**: `unstable_cache` with tags enables efficient revalidation without redeployment
+- **Server Actions**: UI-triggered cache invalidation (`RefreshButton`) demonstrates real-world patterns
+- **Dynamic routes**: Product detail pages use `generateStaticParams()` for static generation while maintaining dynamic data fetching
+
+**Key Implementation Examples:**
+
+```typescript
+// Multiple cache boundaries sharing cached data
+<Suspense fallback={<div>Loading products...</div>}>
+  <ProductList /> {/* Uses getCachedProducts() */}
+</Suspense>
+<Suspense fallback={<div>Loading statistics...</div>}>
+  <ProductStats /> {/* Also uses getCachedProducts() - shared cache */}
+</Suspense>
+
+// Dynamic component alongside cached components
+<Suspense fallback={<footer>Loading...</footer>}>
+  <Footer /> {/* Dynamic - uses headers() */}
+</Suspense>
+
+// Granular cache invalidation
+revalidateTag('products-list')  // Only invalidates product list
+revalidateTag('product-1')      // Only invalidates specific product
+```
+
+These patterns address the Q&A concerns about using cache components effectively in production applications with highly dynamic content.
+
 ## Testing Cache Revalidation
 
 You can test the cache revalidation features:
